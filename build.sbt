@@ -30,3 +30,6 @@ defaultExcludes ~= ( (filter: FileFilter) => filter || "*~")
 
 // set the Scala version used for the project
 scalaVersion := "2.9.0-1"
+
+// disable using the Scala version in output paths and artifacts
+crossPaths := false
