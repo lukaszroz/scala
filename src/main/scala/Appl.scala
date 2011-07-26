@@ -31,7 +31,6 @@ object Appl extends App {
   sillyActor2 ! "Hello"
   sillyActor2 ! "Hello"
   sillyActor2 ! "Hello"
-  sillyActor2 ! "Hello"
-  List(1, 1, 1, 2, 2).span()
+  sillyActor2 ! "Hello" 
 }
 
