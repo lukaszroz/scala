@@ -8,8 +8,13 @@ version := "1.0"
 
 resolvers += ScalaToolsReleases
 
+// set the Scala version used for the project
+scalaVersion := "2.9.0-1"
+
 // Add a single dependency
 libraryDependencies += "junit" % "junit" % "4.8" % "test"
+
+libraryDependencies <+= scalaVersion( "org.scala-lang" % "scala-swing" % _ )
 
 // Add multiple dependencies
 /* libraryDependencies ++= Seq(
@@ -27,9 +32,6 @@ defaultExcludes ~= (_ || "*~")
 defaultExcludes ~= ( (_: FileFilter) || "*~")
 defaultExcludes ~= ( (filter: FileFilter) => filter || "*~")
 */
-
-// set the Scala version used for the project
-scalaVersion := "2.9.0-1"
 
 // disable using the Scala version in output paths and artifacts
 crossPaths := false
