@@ -30,43 +30,40 @@ object ActorTest extends App {
       var pongs = 0
       var lastActor = 0
       loop {
-        receive {
+        react {
           case (Pong, i: Int) =>
             pongs += 1
             lastActor = i
+            //            println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
+            if (pongs == max) {
+              main ! (Stop, pongs)
+            }
           case Stop => exit()
           case Reset => pongs = 0
-        }
-//        if (pongs == 0)
-//          println("[%d] Reseted".format(id))
-//        else if (pongs % 10000 == 0)
-//          println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
-        if (pongs == max) {
-          main ! (Stop, pongs)
         }
       }
     }
   }
 
   def run = {
-//    println("----- Sending pings... -----")
+    //    println("----- Sending pings... -----")
     pings.foreach {
       (ping) =>
         pongs.foreach((pong) => ping ! (Ping, pong))
     }
-//    println("----- Pings sent -----")
+    //    println("----- Pings sent -----")
   }
 
   def stopPings = {
-    println("----- Stopping pings... -----")
+    //    println("----- Stopping pings... -----")
     pings foreach (_ ! Stop)
-    println("----- Stop sent -----")
+    //    println("----- Stop sent -----")
   }
 
   def stopPongs = {
-    println("----- Stopping pongs... -----")
+    //    println("----- Stopping pongs... -----")
     pongs foreach (_ ! Stop)
-    println("----- Stop sent -----")
+    //    println("----- Stop sent -----")
   }
 
   def pongsWait = for (i <- 1 to pongN) receive {
@@ -85,16 +82,17 @@ object ActorTest extends App {
 
   var total = 0
 
-  val n = 10000
-  val pongN = 2
-  val multiply = 40
+  val n = 4
+  val pongN = 4
+  val multiply = 100000
 
   val pongs = for (i <- 1 to pongN) yield pong(i, n * multiply)
   val pings = for (i <- 1 to n) yield ping(i)
 
-  prompt
+  //  prompt
 
   var line = ""
+  var maxThroughput = 0.
   while (line != "OK") {
     val start: Long = currentTime
 
@@ -104,14 +102,17 @@ object ActorTest extends App {
     pongsWait
 
     val time = currentTime - start
-    println("[Total pongs received: %d, time: %d, throughput: %.2f pings/sec]".format(total, time, total / (time / 1000.)))
+    val throughput = total / (time / 1000.)
+    println("[Total pongs received: %d, time: %d, throughput: %.2f pings/sec]".format(total, time, throughput))
 
     pongsReset
     total = 0
+    maxThroughput = throughput max maxThroughput
 
     line = readLine("Type in OK when ready...")
   }
 
   stopPings
   stopPongs
+  println("[Max throughput: %.2f pings/sec]".format(maxThroughput))
 }
