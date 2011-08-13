@@ -1,3 +1,5 @@
+package org.actors
+
 import scala.actors._
 import Actor._
 

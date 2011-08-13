@@ -1,3 +1,5 @@
+package org.stairwaybook.swing
+
 import swing._
 import event.ButtonClicked
 

@@ -1,3 +1,5 @@
+package org.stairwaybook.swing
+
 import scala.swing._
 
 object FirstSwingApp extends SimpleSwingApplication {

@@ -1,3 +1,5 @@
+package org.stairwaybook
+
 object FindLongLines {
   def main(args: Array[String]) {
     val width = args(0).toInt

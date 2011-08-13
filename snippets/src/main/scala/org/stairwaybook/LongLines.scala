@@ -1,3 +1,5 @@
+package org.stairwaybook
+
 import scala.io.Source
 
 object LongLines {

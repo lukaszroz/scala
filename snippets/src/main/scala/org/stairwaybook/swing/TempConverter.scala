@@ -1,3 +1,5 @@
+package org.stairwaybook.swing
+
 import java.util.Locale
 import swing._
 import event._

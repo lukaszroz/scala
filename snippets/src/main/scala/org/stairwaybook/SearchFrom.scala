@@ -1,3 +1,5 @@
+package org.stairwaybook
+
 import scala.Console
 
 object SearchFrom extends App {

@@ -1,8 +1,10 @@
+package org.actors
+
 import actors.Actor
 import actors.Actor._
 import compat.Platform._
 
-object ActorTest extends App {
+object NoActorTest extends App {
 
   case object Ping
 
@@ -12,38 +14,60 @@ object ActorTest extends App {
 
   case object Reset
 
-  def ping(i: Int) = actor(
-    loop {
+  class PingActor(i: Int) extends Actor {
+    def act {
       react {
-        case (Ping, sender: Actor) => sender ! (Pong, i)
-        case Stop =>
-          if (i == n)
-            println("[%d] stopped".format(i))
-          exit()
-      }
-    }
-  )
-
-  def pong(id: Int, max: Int = n) = {
-    val main = self
-    actor {
-      var pongs = 0
-      var lastActor = 0
-      loop {
-        react {
-          case (Pong, i: Int) =>
-            pongs += 1
-            lastActor = i
-            //            println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
-            if (pongs == max) {
-              main ! (Stop, pongs)
-            }
-          case Stop => exit()
-          case Reset => pongs = 0
-        }
+        case (Ping, sender: Actor) =>
+          sender ! (Pong, i)
+          act()
+        case Stop => exit();
       }
     }
   }
+
+  def ping(i: Int) = new PingActor(i).start()
+
+  class PongActor(id: Int, max: Int, main: Actor) extends Actor {
+    var pongs = 0
+    var lastActor = 0
+
+    def act {
+      react {
+        case (Pong, i: Int) =>
+          pongs += 1
+          lastActor = i
+//          println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
+          if (pongs == max) {
+            main ! (Stop, pongs)
+          }
+          act()
+        case Stop =>
+        case Reset =>
+          pongs = 0
+          act()
+      }
+    }
+  }
+
+  def pong(id: Int, max: Int = n) = new PongActor(id, max, self).start()
+//  {
+//    val main = self
+//    actor {
+//      def loop(pongs: Int, lastActor: Int) {
+//        react {
+//          case (Pong, i: Int) =>
+//            //            println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
+//            if (pongs + 1 == max) {
+//              main ! (Stop, pongs + 1)
+//            }
+//            loop(pongs + 1, i)
+//          case Stop =>
+//          case Reset => loop(0, lastActor)
+//        }
+//      }
+//      loop(0, 0)
+//    }
+//  }
 
   def run = {
     //    println("----- Sending pings... -----")
@@ -78,7 +102,7 @@ object ActorTest extends App {
       line = readLine("Type in OK when ready...")
   }
 
-  prompt
+  //  prompt
 
   var total = 0
 
