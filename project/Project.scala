@@ -1,5 +1,6 @@
 import sbt._
 import Keys._
+import com.github.siasia.WebPlugin._
 
 object MyBuild extends Build {
   lazy val root = Project(
@@ -12,7 +13,9 @@ object MyBuild extends Build {
   lazy val server = Project(
     id = "server",
     base = file("server"),
-    settings = baseSettings
+    settings = defaultSettings ++ webSettings ++ Seq {
+      libraryDependencies ++= Dependencies.webPluginDeps
+    }
   )
 
   lazy val client = Project(
@@ -25,8 +28,9 @@ object MyBuild extends Build {
     id = "snippets",
     base = file("snippets"),
     settings = defaultSettings ++ Seq(
-      libraryDependencies <+= scalaVersion(Dependency.swing % _),
-      libraryDependencies += Dependency.akkaActor
+      libraryDependencies <+= scalaVersion(Dependencies.swing % _),
+      libraryDependencies += Dependencies.akkaActor,
+      libraryDependencies ++= Dependencies.jerkson
     )
   )
 
@@ -41,7 +45,9 @@ object MyBuild extends Build {
   lazy val baseSettings = Defaults.defaultSettings ++ Seq(crossPaths := false)
 
   lazy val defaultSettings = baseSettings ++ Seq(
-      resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/"
+    resolvers += "Typesafe Repo" at "http://repo.typesafe.com/typesafe/releases/",
+    resolvers += "JBoss Public Repository Group" at "https://repository.jboss.org/nexus/content/groups/public/",
+    resolvers += "repo.codahale.com" at "http://repo.codahale.com"
   )
 
   lazy val parentSettings = baseSettings ++ Seq(
@@ -49,7 +55,7 @@ object MyBuild extends Build {
   )
 
   // Dependencies
-  object Dependency {
+  object Dependencies {
 
     // Versions
 
@@ -59,5 +65,19 @@ object MyBuild extends Build {
 
     val swing = "org.scala-lang" % "scala-swing"
     val akkaActor = "se.scalablesolutions.akka" % "akka-actor" % V.akka
+    // web plugin
+    val webPluginDeps = Seq(
+      "org.eclipse.jetty" % "jetty-webapp" % "7.4.5.v20110725" % "jetty", // The last part is "jetty" not "test".
+      "org.eclipse.jetty" % "jetty-server" % "7.4.5.v20110725" % "jetty",
+      //for jsp
+      "org.eclipse.jetty" % "jetty-jsp-2.1" % "7.4.5.v20110725" % "jetty",
+      "org.mortbay.jetty" % "jsp-2.1-glassfish" % "2.1.v20100127" % "jetty",
+      "javax.servlet" % "servlet-api" % "2.5" % "provided->default"
+    )
+    // jerkson
+    val jerkson = Seq(
+      "com.codahale" % "jerkson_2.9.0-1" % "0.4.0"
+    )
   }
+
 }

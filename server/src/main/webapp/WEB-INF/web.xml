@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="http://java.sun.com/xml/ns/javaee"
+    xmlns:web="http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+    xsi:schemaLocation="http://java.sun.com/xml/ns/javaee http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd"
+    id="WebApp_ID" version="2.5">
+
+    <servlet>
+        <servlet-name>helloServlet</servlet-name>
+        <servlet-class>com.example.HelloJavaServlet</servlet-class>
+    </servlet>
+    <servlet>
+        <servlet-name>helloSServlet</servlet-name>
+        <servlet-class>com.example.HelloScalaServlet</servlet-class>
+    </servlet>
+    <servlet-mapping>
+        <servlet-name>helloServlet</servlet-name>
+        <url-pattern>/hello</url-pattern>
+    </servlet-mapping>
+    <servlet-mapping>
+        <servlet-name>helloSServlet</servlet-name>
+        <url-pattern>/scala/*</url-pattern>
+    </servlet-mapping>
+</web-app>

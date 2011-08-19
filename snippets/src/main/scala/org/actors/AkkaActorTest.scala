@@ -3,6 +3,7 @@ package org.actors
 import akka.actor._
 import Actor._
 import compat.Platform._
+import util.Random
 
 object AkkaActorTest extends App {
 
@@ -25,11 +26,17 @@ object AkkaActorTest extends App {
 
   class PongActor(id: Int, max: Int, main: ActorRef) extends Actor {
     var pongs, lastActor = 0
+    var lastResult = 0.0
+
+    def doWork(): Double = {
+      (for (i <- 1 to 100) yield math.sqrt(Random.nextDouble())) sum
+    }
 
     def receive = {
       case (Pong, i: Int) =>
         pongs += 1
         lastActor = i
+        lastResult = doWork()
         if (pongs == max) {
           main ! (Stop, pongs)
         }
@@ -47,11 +54,12 @@ object AkkaActorTest extends App {
 
   def pong(id: Int, max: Int = n) = actorOf(new PongActor(id, max, main)).start()
 
-  def run = {
+  def runTest = {
     //    println("----- Sending pings... -----")
     pings.foreach {
-      (ping) =>
+      (ping) => {
         pongs.foreach((pong) => ping ! (Ping, pong))
+      }
     }
     //    println("----- Pings sent -----")
   }
@@ -69,7 +77,7 @@ object AkkaActorTest extends App {
   }
 
   def pongsWait = {
-    while(total < pongN * n * multiply) {
+    while (total < pongN * n * multiply) {
       Thread.sleep(100);
     }
   }
@@ -88,7 +96,7 @@ object AkkaActorTest extends App {
 
   val n = 4
   val pongN = 4
-  val multiply = 100000
+  val multiply = 10000
 
   val pongs = for (i <- 1 to pongN) yield pong(i, n * multiply)
   val pings = for (i <- 1 to n) yield ping(i)
@@ -100,8 +108,17 @@ object AkkaActorTest extends App {
   while (line != "OK") {
     val start: Long = currentTime
 
-    for (i <- 1 to multiply)
-      run
+    val t = new Thread(new Runnable {
+      def run() {
+        for (i <- 1 to multiply / 2)
+          runTest
+      }
+    })
+
+    t.start()
+    for (i <- 1 to multiply / 2)
+      runTest
+    t.join()
 
     pongsWait
 

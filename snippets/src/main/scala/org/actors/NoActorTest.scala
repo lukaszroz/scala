@@ -1,100 +1,63 @@
 package org.actors
 
-import actors.Actor
-import actors.Actor._
 import compat.Platform._
+import util.Random
+import concurrent.ops._
+import org.stairwaybook.expr.Var
+import java.lang.{Thread, Object}
 
 object NoActorTest extends App {
 
-  case object Ping
+  case class Ping(p: PongNoActor)
 
-  case object Pong
+  case class Pong(i: Int)
 
-  case object Stop
+  class Reset
 
-  case object Reset
-
-  class PingActor(i: Int) extends Actor {
-    def act {
-      react {
-        case (Ping, sender: Actor) =>
-          sender ! (Pong, i)
-          act()
-        case Stop => exit();
-      }
+  class PingNoActor(i: Int) {
+    def !(p: Ping) {
+      p.p ! new Pong(i)
     }
   }
 
-  def ping(i: Int) = new PingActor(i).start()
+  def ping(i: Int) = new PingNoActor(i)
 
-  class PongActor(id: Int, max: Int, main: Actor) extends Actor {
+  class PongNoActor(id: Int, max: Int) {
     var pongs = 0
     var lastActor = 0
+    var lastResult = 0.0
+    val pongsLock: Object = new Object
 
-    def act {
-      react {
-        case (Pong, i: Int) =>
-          pongs += 1
-          lastActor = i
-//          println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
-          if (pongs == max) {
-            main ! (Stop, pongs)
-          }
-          act()
-        case Stop =>
-        case Reset =>
-          pongs = 0
-          act()
-      }
+    def doWork(): Double = {
+      (for (i <- 1 to 100) yield math.sqrt(Random.nextDouble())) sum
+    }
+
+    def !(p: Pong) = {
+      pongsLock.synchronized(pongs += 1)
+      lastActor = p.i
+      lastResult = doWork()
+      //      println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
+    }
+
+    def !(r: Reset) {
+      pongsLock.synchronized(pongs = 0)
     }
   }
 
-  def pong(id: Int, max: Int = n) = new PongActor(id, max, self).start()
-//  {
-//    val main = self
-//    actor {
-//      def loop(pongs: Int, lastActor: Int) {
-//        react {
-//          case (Pong, i: Int) =>
-//            //            println("[%d] Pongs received: %d, last actor id: %d".format(id, pongs, lastActor))
-//            if (pongs + 1 == max) {
-//              main ! (Stop, pongs + 1)
-//            }
-//            loop(pongs + 1, i)
-//          case Stop =>
-//          case Reset => loop(0, lastActor)
-//        }
-//      }
-//      loop(0, 0)
-//    }
-//  }
+  def pong(id: Int, max: Int = n) = new PongNoActor(id, max)
 
-  def run = {
+  def runTest {
     //    println("----- Sending pings... -----")
     pings.foreach {
       (ping) =>
-        pongs.foreach((pong) => ping ! (Ping, pong))
+        pongs.foreach((pong) => ping ! (new Ping(pong)))
     }
     //    println("----- Pings sent -----")
   }
 
-  def stopPings = {
-    //    println("----- Stopping pings... -----")
-    pings foreach (_ ! Stop)
-    //    println("----- Stop sent -----")
-  }
+  val r = new Reset
 
-  def stopPongs = {
-    //    println("----- Stopping pongs... -----")
-    pongs foreach (_ ! Stop)
-    //    println("----- Stop sent -----")
-  }
-
-  def pongsWait = for (i <- 1 to pongN) receive {
-    case (Stop, pongs: Int) => total += pongs
-  }
-
-  def pongsReset = pongs.foreach(_ ! Reset)
+  def pongsReset = pongs.foreach(_ ! r)
 
   def prompt = {
     var line = ""
@@ -108,7 +71,7 @@ object NoActorTest extends App {
 
   val n = 4
   val pongN = 4
-  val multiply = 100000
+  val multiply = 10000
 
   val pongs = for (i <- 1 to pongN) yield pong(i, n * multiply)
   val pings = for (i <- 1 to n) yield ping(i)
@@ -120,12 +83,21 @@ object NoActorTest extends App {
   while (line != "OK") {
     val start: Long = currentTime
 
-    for (i <- 1 to multiply)
-      run
+    val t = new Thread(new Runnable {
+      def run() {
+        for (i <- 1 to multiply / 2)
+          runTest
+      }
+    })
 
-    pongsWait
+    t.start()
+    for (i <- 1 to multiply / 2)
+      runTest
+    t.join()
 
     val time = currentTime - start
+
+    total = pongs map (_.pongs) sum
     val throughput = total / (time / 1000.)
     println("[Total pongs received: %d, time: %d, throughput: %.2f pings/sec]".format(total, time, throughput))
 
@@ -136,7 +108,5 @@ object NoActorTest extends App {
     line = readLine("Type in OK when ready...")
   }
 
-  stopPings
-  stopPongs
   println("[Max throughput: %.2f pings/sec]".format(maxThroughput))
 }
