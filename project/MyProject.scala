@@ -2,7 +2,7 @@ import sbt._
 import Keys._
 import com.github.siasia.WebPlugin._
 
-object MyBuild extends Build {
+object MyProject extends Build {
   lazy val root = Project(
     id = "root",
     base = file("."),
@@ -13,9 +13,10 @@ object MyBuild extends Build {
   lazy val server = Project(
     id = "server",
     base = file("server"),
-    settings = defaultSettings ++ webSettings ++ Seq {
-      libraryDependencies ++= Dependencies.webPluginDeps
-    }
+    settings = defaultSettings ++ webSettings ++ Seq(
+      libraryDependencies ++= Dependencies.webPluginDeps :+ Dependencies.jerkson
+    )
+      ++ Seq(jettyScanDirs := file("C:\\github\\scala\\server\\target\\webapp\\WEB-INF\\web.xml") :: Nil)
   )
 
   lazy val client = Project(
@@ -30,7 +31,7 @@ object MyBuild extends Build {
     settings = defaultSettings ++ Seq(
       libraryDependencies <+= scalaVersion(Dependencies.swing % _),
       libraryDependencies += Dependencies.akkaActor,
-      libraryDependencies ++= Dependencies.jerkson
+      libraryDependencies += Dependencies.jerkson
     )
   )
 
@@ -75,9 +76,7 @@ object MyBuild extends Build {
       "javax.servlet" % "servlet-api" % "2.5" % "provided->default"
     )
     // jerkson
-    val jerkson = Seq(
-      "com.codahale" % "jerkson_2.9.0-1" % "0.4.0"
-    )
+    val jerkson = "com.codahale" % "jerkson_2.9.0-1" % "0.4.0"
   }
 
 }

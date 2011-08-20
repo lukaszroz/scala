@@ -7,7 +7,7 @@
     id="WebApp_ID" version="2.5">
 
     <servlet>
-        <servlet-name>helloServlet</servlet-name>
+        <servlet-name>helloJServlet</servlet-name>
         <servlet-class>com.example.HelloJavaServlet</servlet-class>
     </servlet>
     <servlet>
@@ -15,8 +15,8 @@
         <servlet-class>com.example.HelloScalaServlet</servlet-class>
     </servlet>
     <servlet-mapping>
-        <servlet-name>helloServlet</servlet-name>
-        <url-pattern>/hello</url-pattern>
+        <servlet-name>helloJServlet</servlet-name>
+        <url-pattern>/java/*</url-pattern>
     </servlet-mapping>
     <servlet-mapping>
         <servlet-name>helloSServlet</servlet-name>
