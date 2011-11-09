@@ -1,21 +1,33 @@
-object HelloWorld extends App {
-  private def filesHere = (new java.io.File(".")).listFiles
+import annotation.tailrec
+import java.io.{PrintWriter, File}
 
-  def filesMatching(matcher: (String) => Boolean) = {
-    for (file <- filesHere; if matcher(file.getName))
-    yield file
+object HelloWorld extends App {
+
+  def withPrintWriter(file: File)(op: PrintWriter => Unit) {
+    val writer = new PrintWriter(file)
+    try {
+      op(writer)
+    } finally {
+      writer.close()
+    }
   }
 
-  def filesEnding(query: String) =
-    filesMatching(_.endsWith(query))
+  val file = new File("date.txt")
+  withPrintWriter(file) {
+    writer => writer.println(new java.util.Date)
+  }
 
-  def filesContaining(query: String) =
-    filesMatching(_.contains(query))
+  @tailrec
+  def noweWhile(predykat: => Boolean)(zawartosc: => Unit) {
+    if (predykat) {
+      zawartosc
+      noweWhile(predykat)(zawartosc)
+    }
+  }
 
-  def filesRegex(query: String) =
-    filesMatching(_.matches(query))
-
-  println(filesEnding("iml").toList)
-  println(filesContaining("de").toList)
-  println(filesRegex(".*i.e.*").toList)
+  var i = 0;
+  noweWhile(i < 10) {
+    println(i)
+    i += 1
+  }
 }

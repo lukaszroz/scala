@@ -19,6 +19,21 @@ class HelloScalaServlet extends HttpServlet {
     }
     out.incrementAndGet
   }
+
+  override def doPost(req: HttpServletRequest, resp: HttpServletResponse) {
+    in.incrementAndGet
+    start
+    counter.incrementAndGet
+    println(parse(req.getInputStream))
+
+    val max = in.get - out.get
+    var maxInC = maxIn.get
+    while (maxInC < max){
+      maxIn.compareAndSet(maxInC, max)
+      maxInC = maxIn.get
+    }
+    out.incrementAndGet
+  }
 }
 
 object Counter {
